@@ -2,6 +2,7 @@ import datetime
 import glob
 import pandas as pd
 
+KENV_ROOT_DIR = "/Users/meade/Desktop"
 OUTPUT_FILE_NAME = "unr_5min_gps"
 YEAR_2000_OFFSET = datetime.datetime(2000, 1, 1, 12, 0)
 
@@ -28,24 +29,29 @@ def read_single_file(file_name):
 
     # Delete unneeded columns
     df = df.drop(columns=["sec-J2000", "__MJD", "year", "mm", "dd", "doy", "s-day"])
-
     return df
 
 
-def main():
-    ''' Get all valid filenames, read in each, build giant dataframe, and save to disk '''
-    file_names = glob.glob('./*.kenv', recursive=True)
-
-    # List comprehension is fast for catting all files, but has no error checking...gulp!
-    dfs = [read_single_file(file_name) for file_name in file_names]
-    df = pd.concat(dfs)
-
+def write_to_disk(df):
+    ''' Write latest df to disk in multiple formats '''
     # Store as and .pkl
     df.to_pickle(OUTPUT_FILE_NAME + ".pkl")
     
     # Save as feather...super fast but still alpha
     df.to_feather(OUTPUT_FILE_NAME + ".feather")
- 
+
+
+def main():
+    ''' Get all valid filenames, read in each, build giant dataframe, and save to disk '''
+    file_names = glob.glob(KENV_ROOT_DIR + '/*.kenv', recursive=True)
+
+    df_list = []
+    for i in range(0, len(file_names)):
+        print(str(i) + " of " + str(len(file_names)) + " : " + file_names[i])
+        df_list.append(read_single_file(file_names[i])) # Building list because append cost is nearly free
+    
+    df = pd.concat(df_list) # Now one big concat instead of millions of small ones
+    write_to_disk(df)
 
 if __name__ == "__main__":
     main()
