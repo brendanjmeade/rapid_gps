@@ -2,7 +2,7 @@ import datetime
 import glob
 import pandas as pd
 
-KENV_ROOT_DIR = "/Users/meade/Desktop"
+KENV_ROOT_DIR = "/home/meade/Desktop/data/5_min_gps_subset"
 OUTPUT_FILE_NAME = "unr_5min_gps"
 YEAR_2000_OFFSET = datetime.datetime(2000, 1, 1, 12, 0)
 
@@ -47,17 +47,19 @@ def write_to_disk(df):
 
 def main():
     """ Get all valid filenames, read in each, build giant dataframe, and save to disk """
-    file_names = glob.glob(KENV_ROOT_DIR + "/*.kenv", recursive=True)
+    print("entered main")
+    file_names = glob.glob(KENV_ROOT_DIR + "/**/*.kenv", recursive=True)
 
     df_list = []
     for i in range(0, len(file_names)):
-        print(str(i) + " of " + str(len(file_names)) + " : " + file_names[i])
+        print(str(i + 1) + " of " + str(len(file_names)) + " : " + file_names[i])
         df_list.append(
             read_single_file(file_names[i])
         )  # Building list because append cost is nearly free
 
     df = pd.concat(df_list)  # Now one big concat instead of millions of small ones
-    write_to_disk(df)
+    print(df.shape)
+    # write_to_disk(df)
 
 
 if __name__ == "__main__":
