@@ -3,6 +3,8 @@ import glob
 import pandas as pd
 
 KENV_ROOT_DIR = "/home/meade/Desktop/data/5_min_gps_subset"
+KENV_ROOT_DIR = "/home/meade/Desktop/data/5_min_gps/2013"
+
 OUTPUT_FILE_NAME = "unr_5min_gps"
 YEAR_2000_OFFSET = datetime.datetime(2000, 1, 1, 12, 0)
 
@@ -47,19 +49,30 @@ def write_to_disk(df):
 
 def main():
     """ Get all valid filenames, read in each, build giant dataframe, and save to disk """
-    print("entered main")
+    print("Globbing file names")
     file_names = glob.glob(KENV_ROOT_DIR + "/**/*.kenv", recursive=True)
+    print("Done globbing file names")
 
     df_list = []
     for i in range(0, len(file_names)):
-        print(str(i + 1) + " of " + str(len(file_names)) + " : " + file_names[i])
-        df_list.append(
-            read_single_file(file_names[i])
-        )  # Building list because append cost is nearly free
+        try:
+            print(str(i + 1) + " of " + str(len(file_names)) + " : " + file_names[i])
+            df_list.append(
+                read_single_file(file_names[i])
+            )  # Building list because append cost is nearly free
+        except:
+            print(
+                str(i + 1)
+                + " of "
+                + str(len(file_names))
+                + " : "
+                + file_names[i]
+                + " : FAILED"
+            )
 
     df = pd.concat(df_list)  # Now one big concat instead of millions of small ones
-    print(df.shape)
-    # write_to_disk(df)
+    df.reset_index(inplace=True)
+    write_to_disk(df)
 
 
 if __name__ == "__main__":
