@@ -2,10 +2,10 @@ import datetime
 import glob
 import pandas as pd
 
-KENV_ROOT_DIR = "/home/meade/Desktop/data/5_min_gps_subset"
-KENV_ROOT_DIR = "/home/meade/Desktop/data/5_min_gps/2013"
+KENV_ROOT_DIR = "/Users/meade/Desktop/data/5_min_gps_data"
+# KENV_ROOT_DIR = "/home/meade/Desktop/data/5_min_gps/2013"
 
-OUTPUT_FILE_NAME = "unr_5min_gps"
+OUTPUT_FILE_NAME = "/Users/meade/Desktop/data/5_min_gps_data/unr_5min_gps"
 YEAR_2000_OFFSET = datetime.datetime(2000, 1, 1, 12, 0)
 
 
@@ -44,7 +44,7 @@ def write_to_disk(df):
     df.to_pickle(OUTPUT_FILE_NAME + ".pkl")
 
     # Save as feather...super fast but still alpha
-    df.to_feather(OUTPUT_FILE_NAME + ".feather")
+    # df.to_feather(OUTPUT_FILE_NAME + ".feather")
 
 
 def main():
