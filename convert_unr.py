@@ -1,11 +1,13 @@
 import datetime
 import glob
 import pandas as pd
+import sqlite3
 
-KENV_ROOT_DIR = "/Users/meade/Desktop/data/5_min_gps_data"
+
+KENV_ROOT_DIR = "D:/5_minute_gps/5_min_gps_subset"
 # KENV_ROOT_DIR = "/home/meade/Desktop/data/5_min_gps/2013"
 
-OUTPUT_FILE_NAME = "/Users/meade/Desktop/data/5_min_gps_data/unr_5min_gps"
+OUTPUT_FILE_NAME = "D:/5_minute_gps/rapid_gps-master/PUTINHERE"
 YEAR_2000_OFFSET = datetime.datetime(2000, 1, 1, 12, 0)
 
 
@@ -38,13 +40,31 @@ def read_single_file(file_name):
     return df
 
 
-def write_to_disk(df):
+def write_to_disk(df, df_list):
     """ Write latest df to disk in multiple formats """
     # Store as and .pkl
     df.to_pickle(OUTPUT_FILE_NAME + ".pkl")
 
-    # Save as feather...super fast but still alpha
-    # df.to_feather(OUTPUT_FILE_NAME + ".feather")
+    # Save as feather...super fast but still alpha8-
+    # df.to_feather(OUTPUT_FILE_NAME + ".feather"
+
+    """connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+
+    cursor.execute('CREATE TABLE IF NOT EXISTS gps(Index number primary key, O_Index number, site text,'
+                   ' e_ref mediumint, n_ref mediumint,'
+                   ' v_ref mediumint, e_mean mediumint, n_mean mediumint, v_mean mediumint,'
+                   ' sig_e mediumint, sig_n mediumint, sig_v mediumint, datetime text  )')
+    connection.commit()
+    connection.close()  # This from an attempt at trying to create a database to then fill with data"""
+
+    connection = sqlite3.connect('data.db')
+    # cursor = connection.cursor()
+
+    df.to_sql('gps', con=connection)
+
+    connection.commit()
+    connection.close()
 
 
 def main():
@@ -72,7 +92,7 @@ def main():
 
     df = pd.concat(df_list)  # Now one big concat instead of millions of small ones
     df.reset_index(inplace=True)
-    write_to_disk(df)
+    write_to_disk(df, df_list)
 
 
 if __name__ == "__main__":
