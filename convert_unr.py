@@ -45,6 +45,14 @@ def write_to_disk(df):
 
     # Save as feather...super fast but still alpha
     # df.to_feather(OUTPUT_FILE_NAME + ".feather")
+    
+    connection = sqlite3.connect('data.db')
+    # cursor = connection.cursor() # It is not used here but it is often used when working with sqlite
+
+    df.to_sql('gps', con=connection, schema=None, if_exists='replace', index=None, chunksize=None, dtype=None, method=None)
+
+    connection.commit()
+    connection.close()
 
 
 def main():
