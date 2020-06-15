@@ -1,6 +1,8 @@
 import datetime
 import glob
 import pandas as pd
+# from sqlalchemy import create_engine
+
 
 KENV_ROOT_DIR = "/Users/meade/Desktop/data/5_min_gps_data"
 # KENV_ROOT_DIR = "/home/meade/Desktop/data/5_min_gps/2013"
@@ -46,13 +48,10 @@ def write_to_disk(df):
     # Save as feather...super fast but still alpha
     # df.to_feather(OUTPUT_FILE_NAME + ".feather")
     
-    connection = sqlite3.connect('data.db')
-    # cursor = connection.cursor() # It is not used here but it is often used when working with sqlite
-
-    df.to_sql('gps', con=connection, schema=None, if_exists='replace', index=None, chunksize=None, dtype=None, method=None)
-
-    connection.commit()
-    connection.close()
+    # You'll need to import sqlalchemy to use this.
+    # engine = create_engine('sqlite:///data.db')
+    
+    # df.to_sql('gps', con=engine, schema=None, if_exists='replace', index=False, chunksize=None, dtype=None, method=None)
 
 
 def main():
