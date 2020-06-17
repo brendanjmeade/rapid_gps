@@ -2,6 +2,7 @@ import datetime
 import glob
 import pandas as pd
 # from sqlalchemy import create_engine
+from dask import dataframe as dd
 
 
 KENV_ROOT_DIR = "/Users/meade/Desktop/data/5_min_gps_data"
@@ -53,6 +54,10 @@ def write_to_disk(df):
     
     # df.to_sql('gps', con=engine, schema=None, if_exists='replace', index=False, chunksize=None, dtype=None, method=None)
 
+    # save as parquet file
+    # note - each partition in the dask dataframe will be written to a separate file
+    # you will need to install a parquet library (either fastparquet or pyarrow)
+    # df.to_parquet(OUTPUT_FILE_NAME + ".parquet")
 
 def main():
     """ Get all valid filenames, read in each, build giant dataframe, and save to disk """
@@ -79,6 +84,10 @@ def main():
 
     df = pd.concat(df_list)  # Now one big concat instead of millions of small ones
     df.reset_index(inplace=True)
+    
+    # to convert to dask dataframe:
+    # number of partitions should be 1-2x the number of cores in your CPU
+    # df = dd.from_pandas(df, npartitions=8)
     write_to_disk(df)
 
 
