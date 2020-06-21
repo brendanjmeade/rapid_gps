@@ -18,35 +18,37 @@ def make_arrays():
     n_ref = np.array([row[2] for row in subset])
 
     v_ref = np.array([row[3] for row in subset])
-    # .astype('datetime64')is added to convert the array's values from a string to time
-    # Doing that allows the plotter to auto-format the x axis
+
     time = np.array([row[4] for row in subset]).astype('datetime64')
     connection.close()
 
-    return e_ref, n_ref, v_ref, time
+    return site,e_ref, n_ref, v_ref, time
 
 
+# print(make_arrays())
 values = make_arrays()
-east_position = values[0]
-north_position = values[1]
-up_position = values[2]
-time = values[3]
+searched_site = values[0][0]
+east_position = values[1]
+north_position = values[2]
+up_position = values[3]
+time = values[4]
+# print(time)
 
 
 plt.figure(figsize=(20, 10))  # Create a figure twice as wide as it is high
-plt.suptitle("Site: 'BESI'", fontsize=18, fontweight="bold")
+plt.suptitle("Site:"+searched_site, fontsize=18, fontweight="bold")
 plt.subplot(3, 1, 1)  # Create the first subpanel for the east displacement time series
-plt.plot_date(time, east_position, "m.")  # Plot the east position time series
-plt.xlabel("time", fontsize=12, fontweight="bold");
+plt.plot_date(time, east_position, "k.", markersize=1)  # Plot the east position time series
+plt.xlabel("time", fontsize=12, fontweight="bold")
 plt.ylabel("east position (units)", fontsize=14, fontweight="bold")  # Add descriptive axis labels
 plt.xticks([min(time), max(time)], fontsize=12, fontweight='bold')
 plt.subplot(3, 1, 2)  # Create the first subpanel for the east displacement time series
-plt.plot(time, north_position, "m.")  # Plot the east position time series
-plt.xlabel("time", fontsize=12, fontweight="bold");
+plt.plot(time, north_position, "k.", markersize=1)  # Plot the east position time series
+plt.xlabel("time", fontsize=12, fontweight="bold")
 plt.ylabel("north position (units)", fontsize=14, fontweight="bold")  # Add descriptive axis labels
-# plt.xticks(['2013-02-28 00:00:00.000000', '2013-03-02 23:45:00.000000'],)
 plt.subplot(3, 1, 3)  # Create the first subpanel for the east displacement time series
-plt.plot(time, up_position, "m.")  # Plot the east position time series
-plt.xlabel("time", fontsize=12, fontweight="bold");
+plt.plot(time, up_position, "k.", markersize=1)  # Plot the east position time series
+plt.xlabel("time", fontsize=12, fontweight="bold")
 plt.ylabel("up position (units)", fontsize=14, fontweight="bold")  # Add descriptive axis labels
 plt.subplots_adjust(hspace=.3)
+plt.show()
