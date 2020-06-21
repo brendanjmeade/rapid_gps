@@ -18,7 +18,8 @@ def make_arrays():
     n_ref = np.array([row[2] for row in subset])
 
     v_ref = np.array([row[3] for row in subset])
-
+    # .astype('datetime64')is added to convert the array's values from a string to time
+    # Doing that allows the plotter to auto-format the x axis
     time = np.array([row[4] for row in subset]).astype('datetime64')
     connection.close()
 
