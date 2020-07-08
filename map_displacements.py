@@ -54,6 +54,13 @@ points = df[['lat', 'lon']].values
 grid_e = griddata(points, df['e_ref'], (grid_x, grid_y), method='linear')
 grid_n = griddata(points, df['n_ref'], (grid_x, grid_y), method='linear')
 grid_v = griddata(points, df['v_ref'], (grid_x, grid_y), method='linear')
+#extrapolate the data outside the convex hull using the 'nearest' method
+grid_e_nearest = griddata(points, df['e_ref'].values, (grid_x, grid_y), method='nearest')
+grid_n_nearest = griddata(points, df['n_ref'].values, (grid_x, grid_y), method='nearest')
+grid_v_nearest = griddata(points, df['v_ref'].values, (grid_x, grid_y), method='nearest')
+grid_e[np.isnan(grid_e)] = grid_e_nearest[np.isnan(grid_e)]
+grid_n[np.isnan(grid_n)] = grid_n_nearest[np.isnan(grid_n)]
+grid_v[np.isnan(grid_v)] = grid_v_nearest[np.isnan(grid_v)]
 
 min_displacement = min([min(df['e_ref']),min(df['n_ref']),min(df['v_ref'])])
 max_displacement = max([max(df['e_ref']),max(df['n_ref']),max(df['v_ref'])])
