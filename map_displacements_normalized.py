@@ -13,6 +13,10 @@ lon = lon.where(lon > -180, other=lon+360) #a lot of the longitudes are less tha
 stations.drop(columns=['lon'])
 stations['lon'] = lon
 
+# assign the desired time interval
+start = 'datetime.datetime(2015, 1, 1, 0, 0, 0)'
+end = 'datetime.datetime(2015, 1, 2, 0, 0, 0)'
+
 # assign the desired limits for latitude and longitude
 min_lat = 32
 max_lat = 36
@@ -29,23 +33,28 @@ def query_locations(min_lat, max_lat, min_lon, max_lon):
 
 
 def find_limits(df):
-    start = 'datetime.datetime(2015, 1, 1, 0, 0, 0)'
-    end = 'datetime.datetime(2015, 1, 2, 0, 0, 0)'
-    df = df.query(start + '<= date_time < ' + end)
-    df = df.compute()
     min_displacement = min([min(df['e_ref']), min(df['n_ref']), min(df['v_ref'])])
     max_displacement = max([max(df['e_ref']), max(df['n_ref']), max(df['v_ref'])])
     return min_displacement, max_displacement
 
 
-def normalize(df):
-    start = 'datetime.datetime(2015, 1, 1, 0, 0, 0)'
-    end = 'datetime.datetime(2015, 1, 2, 0, 0, 0)'
-    df = df.query(start + '<= date_time < ' + end)
+def normalize_whole(df):
     df.e_ref = df.e_ref - (df.e_ref.mean())
     df.v_ref = df.v_ref - (df.v_ref.mean())
     df.n_ref = df.n_ref - (df.n_ref.mean())
-    df.compute()
+    return df
+
+def normalize_sites(df):
+    # normalizes displacements at each station with respect to the mean at each station
+    sites = df.site.unique()
+    for i in sites:
+        df_site = df.loc[df['site'] == i]
+        e_mean = np.mean(df_site.e_ref)
+        n_mean = np.mean(df_site.n_ref)
+        v_mean = np.mean(df_site.v_ref)
+        df.loc[df['site'] == i, 'e_ref'] -= e_mean
+        df.loc[df['site'] == i, 'n_ref'] -= n_mean
+        df.loc[df['site'] == i, 'v_ref'] -= v_mean
     return df
 
 
@@ -58,16 +67,18 @@ socal = query_locations(min_lat, max_lat, min_lon, max_lon)
 df = df[df['site'].isin(socal['site'])]
 # add the lat and lon columns to the gps dataframe
 df = df.join(socal.set_index('site'), on='site')
+# query for the desired time interval
+df = df.query(start + '<= date_time < ' + end)
+# convert from dask to pandas
+df = df.compute()
 
-df = normalize(df)
+# normalize the displacement by the mean of all sites
+df = normalize_whole(df)
 
 min_displacement, max_displacement = find_limits(df)
 
-# print(min_displacement)
-# print(max_displacement)
 
-
-
+# Starting hour of loop
 count = 0
 
 for i in range(0, 24):
@@ -79,7 +90,6 @@ for i in range(0, 24):
         # get data at a certain time
         start = 'datetime.datetime(2015, 1, 1, '+str(i)+','+str(k)+', 0)'
         dff = df.query('date_time == ' + start)
-        dff = dff.compute()
 
         title = datetime.datetime(2015, 1, 1, i, k, 0)
 
@@ -126,5 +136,5 @@ for i in range(0, 24):
         cbar = fig.colorbar(axs[0].imshow(grid_e.T, cmap='RdYlGn', vmin=min_displacement, vmax=max_displacement,
                                           extent=(min_lon, max_lon, min_lat, max_lat), origin='lower'), ax=axs,
                             orientation='horizontal', label='Meters')
-        plt.savefig('E:/Pictures/2015_Slideshow(limited_and_normalized)/' + str(count))
+        plt.savefig('E:/Pictures/2015_Slideshow(limited_and_normalized)2/' + str(count))
         plt.close()
