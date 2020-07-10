@@ -1,12 +1,14 @@
 import cv2
 import glob
+import os
 # import numpy as np
 
-FILE_PATH = 'E:/Pictures/2015 Slideshow(set limits)'
+FILE_PATH = 'E:/Pictures/2015_Slideshow(limited_normalized_week)'
 
 img_array = []
 print('Beginning to Glob')
-file_names = glob.glob(FILE_PATH +'/*.png', recursive=True)
+# The glob is sorted based on the time of creation
+file_names = sorted((glob.glob(FILE_PATH +'/*.png')), key=os.path.getmtime)
 print('No Longer globbing')
 
 for filename in file_names:
@@ -15,7 +17,8 @@ for filename in file_names:
     size = (width, height)
     img_array.append(img)
 
-out = cv2.VideoWriter('project.mp4',cv2.VideoWriter_fourcc(*'mp4v'), 5, size)
+
+out = cv2.VideoWriter('E:/Pictures/mp4s_of_project/2015_week_1.mp4',cv2.VideoWriter_fourcc(*'mp4v'), 30, size)
 
 for i in range(len(img_array)):
     out.write(img_array[i])
