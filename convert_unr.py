@@ -52,7 +52,7 @@ def write_to_disk(df):
     # You'll need to import sqlalchemy to use this.
     # engine = create_engine('sqlite:///data.db')
     
-    # df.to_sql('gps', con=engine, schema=None, if_exists='replace', index=False, chunksize=None, dtype=None, method=None)
+    # df.to_sql('gps', con=engine, schema=None, if_exists='replace', index=False)
 
     # save as parquet file
     # note - each partition in the dask dataframe will be written to a separate file
