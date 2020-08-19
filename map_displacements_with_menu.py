@@ -56,66 +56,69 @@ def create_images(dfm, sy, sm, sd, ey, em, ed):
         date_list.append(single_date.strftime(("%Y,%#m,%#d")))
         print(single_date.strftime("%Y,%m,%d"))
 
+    print("Finding Times")
+    times = df.date_time.unique()
+
     # Starting hour of loop
     count = 0
-    for j in date_list:
-        for i in range(0, 24):
-            for k in range(0, 60, 5):
-                count += 1
+    print("Starting the iteration")
+    for time in times:
+        count += 1
+        print(count)
 
-                # df = df.dropna()
+        time = datetime.datetime.utcfromtimestamp(time.tolist() / 1e9)
+        year = time.year
+        month = time.month
+        day = time.day
+        hour = time.hour
+        minute = time.minute
+        dff = df.query(
+            'date_time == ' + 'datetime.datetime(' + str(year) + ',' + str(month) + ',' + str(day) + ',' + str(
+                hour) + ',' + str(minute) + ',' + '0)')
 
-                # get data at a certain time
-                start = 'datetime.datetime('+ str(j) +', ' + str(i) + ',' + str(k) + ', 0)'
-                df2 = dfm.query('date_time == ' + start)
+        title = time
 
-                title = "".join(c for c in start if c not in 'datetime.datetime()')
-                print('Making ' + title)
+        # plot interpolation of data at that time
+        grid_x, grid_y = np.mgrid[min_lat:max_lat:100j, min_lon:max_lon:200j]
 
-                # Debugging
-                # print(df['date_time'])
-                # print(df['n_ref'])
+        points_X = dff[['lon']]
+        points_Y = dff[['lat']]
+        points = dff[['lat', 'lon']].values
 
-                # plot interpolation of data at that time
-                grid_x, grid_y = np.mgrid[min_lat:max_lat:100j, min_lon:max_lon:200j]
+        grid_e = griddata(points, dff['e_ref'], (grid_x, grid_y), method='linear')
+        grid_n = griddata(points, dff['n_ref'], (grid_x, grid_y), method='linear')
+        grid_v = griddata(points, dff['v_ref'], (grid_x, grid_y), method='linear')
+        # extrapolate the data outside the convex hull using the 'nearest' method
+        grid_e_nearest = griddata(points, dff['e_ref'].values, (grid_x, grid_y), method='nearest')
+        grid_n_nearest = griddata(points, dff['n_ref'].values, (grid_x, grid_y), method='nearest')
+        grid_v_nearest = griddata(points, dff['v_ref'].values, (grid_x, grid_y), method='nearest')
+        grid_e[np.isnan(grid_e)] = grid_e_nearest[np.isnan(grid_e)]
+        grid_n[np.isnan(grid_n)] = grid_n_nearest[np.isnan(grid_n)]
+        grid_v[np.isnan(grid_v)] = grid_v_nearest[np.isnan(grid_v)]
 
-                points_X = df2[['lon']]
-                points_Y = df2[['lat']]
-                points = df2[['lat', 'lon']].values
+        fig, axs = plt.subplots(1, 3, figsize=(18.5, 6))
 
-                grid_e = griddata(points, df2['e_ref'], (grid_x, grid_y), method='linear')
-                grid_n = griddata(points, df2['n_ref'], (grid_x, grid_y), method='linear')
-                grid_v = griddata(points, df2['v_ref'], (grid_x, grid_y), method='linear')
-                # extrapolate the data outside the convex hull using the 'nearest' method
-                grid_e_nearest = griddata(points, df2['e_ref'].values, (grid_x, grid_y), method='nearest')
-                grid_n_nearest = griddata(points, df2['n_ref'].values, (grid_x, grid_y), method='nearest')
-                grid_v_nearest = griddata(points, df2['v_ref'].values, (grid_x, grid_y), method='nearest')
-                grid_e[np.isnan(grid_e)] = grid_e_nearest[np.isnan(grid_e)]
-                grid_n[np.isnan(grid_n)] = grid_n_nearest[np.isnan(grid_n)]
-                grid_v[np.isnan(grid_v)] = grid_v_nearest[np.isnan(grid_v)]
-
-                fig, axs = plt.subplots(1, 3, figsize=(18.5, 6))
-                # fig.tight_layout()
-                plt.suptitle(title, fontsize=16)
-                axs[0].imshow(grid_e.T, cmap='RdYlGn', vmin=min_displacement, vmax=max_displacement,
-                              extent=(min_lon, max_lon, min_lat, max_lat), origin='lower')
-                axs[0].plot(points_X, points_Y, "k.", ms=1)
-                axs[0].set_title('East Displacement', weight='bold', fontsize=12)
-                axs[0].set_ylabel('Latitude', weight='bold', fontsize=14)
-                axs[1].imshow(grid_n.T, cmap='RdYlGn', vmin=min_displacement, vmax=max_displacement,
-                              extent=(min_lon, max_lon, min_lat, max_lat), origin='lower')
-                axs[1].plot(points_X, points_Y, "k.", ms=1)
-                axs[1].set_title('North Displacement', weight='bold', fontsize=12)
-                axs[1].set_xlabel('Longitude', weight='bold', fontsize=14)
-                axs[2].imshow(grid_v.T, cmap='RdYlGn', vmin=min_displacement, vmax=max_displacement,
-                              extent=(min_lon, max_lon, min_lat, max_lat), origin='lower')
-                axs[2].plot(points_X, points_Y, "k.", ms=1)
-                axs[2].set_title('Up Displacement', weight='bold', fontsize=12)
-                cbar = fig.colorbar(axs[0].imshow(grid_e.T, cmap='RdYlGn', vmin=min_displacement, vmax=max_displacement,
-                                                  extent=(min_lon, max_lon, min_lat, max_lat), origin='lower'), ax=axs,
-                                    orientation='horizontal', label='Meters')
-                plt.savefig('E:/Pictures/2015_Slideshow(menu)/' + str(count))
-                plt.close()
+        # fig.tight_layout()
+        plt.suptitle(title, fontsize=16)
+        axs[0].imshow(grid_e.T, cmap='Spectral', vmin=min_displacement, vmax=max_displacement,
+                      extent=(min_lon, max_lon, min_lat, max_lat), origin='lower')
+        axs[0].plot(points_X, points_Y, "k.", ms=1)
+        axs[0].set_title('East Displacement', weight='bold', fontsize=12)
+        axs[0].set_ylabel('Latitude', weight='bold', fontsize=14)
+        axs[1].imshow(grid_n.T, cmap='Spectral', vmin=min_displacement, vmax=max_displacement,
+                      extent=(min_lon, max_lon, min_lat, max_lat), origin='lower')
+        axs[1].plot(points_X, points_Y, "k.", ms=1)
+        axs[1].set_title('North Displacement', weight='bold', fontsize=12)
+        axs[1].set_xlabel('Longitude', weight='bold', fontsize=14)
+        axs[2].imshow(grid_v.T, cmap='Spectral', vmin=min_displacement, vmax=max_displacement,
+                      extent=(min_lon, max_lon, min_lat, max_lat), origin='lower')
+        axs[2].plot(points_X, points_Y, "k.", ms=1)
+        axs[2].set_title('Up Displacement', weight='bold', fontsize=12)
+        cbar = fig.colorbar(axs[0].imshow(grid_e.T, cmap='Spectral', vmin=min_displacement, vmax=max_displacement,
+                                          extent=(min_lon, max_lon, min_lat, max_lat), origin='lower'), ax=axs,
+                            orientation='horizontal', label='Meters')
+        plt.savefig('E:/Pictures/2016_Slideshow/' + str(count))
+        plt.close()
     print('DONE!!!')
 
 
@@ -223,9 +226,12 @@ user_options = {
     "se": select_new_area
 }
 
-MENU_PROMPT = "\nEnter 'w' normalize based on the mean of the whole, 's' Normalize each site by its mean," \
-              "\n'l' Retrieve the latitude and longitude values, 'c' create the images ," \
-              "\n't' Return Timeframe or 'q' to quit: "
+MENU_PROMPT = "\nEnter 'w' normalize based on the mean of the whole,"\
+              "\n's' Normalize each site by its mean," \
+              "\n'l' Retrieve the latitude and longitude values,"\
+              "\n'c' create the images," \
+              "\n't' Return Timeframe, or"\
+              "\n'q' to quit: "
 
 
 def menu(dfm, minimum_lat, maximum_lat, minimum_lon, maximum_lon, beginning, final, sy, sm, sd, ey, em, ed):
