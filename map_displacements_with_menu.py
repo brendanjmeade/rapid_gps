@@ -226,11 +226,14 @@ user_options = {
     "se": select_new_area
 }
 
-MENU_PROMPT = "\nEnter 'w' normalize based on the mean of the whole,"\
+MENU_PROMPT = "\nEnter the following commands:"\
+              "\n'w' normalize based on the mean of the whole,"\
               "\n's' Normalize each site by its mean," \
               "\n'l' Retrieve the latitude and longitude values,"\
               "\n'c' create the images," \
-              "\n't' Return Timeframe, or"\
+              "\n't' Return Timeframe, "\
+              "\n'ch' change_the_timeframe,"\
+              "\n'se' select_new_area, or"\
               "\n'q' to quit: "
 
 
